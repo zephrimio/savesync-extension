@@ -3,6 +3,7 @@
   "name": "SaveSync Bookmarks",
   "version": "0.1.0",
   "description": "One-click export of your X / Twitter, RedNote (小红书), and YouTube Watch Later bookmarks as JSON.",
+  "homepage_url": "https://github.com/zephrimio/savesync-extension",
   "action": {
     "default_popup": "popup.html",
     "default_title": "SaveSync Bookmarks",
