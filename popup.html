@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>SaveSync Bookmarks</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="card">
+    <!-- Header -->
+    <header class="hdr">
+      <img class="hdr-logo" src="icons/icon48.png" alt="">
+      <div class="hdr-text">
+        <div class="hdr-title">SaveSync Bookmarks</div>
+        <div class="hdr-sub"><span id="hdrVersion">v0.1.2</span> · <span id="hdrOn">On —</span></div>
+      </div>
+      <div class="pill pill-local" title="Runs locally. Nothing is uploaded.">
+        <svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true">
+          <path d="M3 5V3.5a3 3 0 0 1 6 0V5" fill="none" stroke="currentColor" stroke-width="1.2"/>
+          <rect x="2.5" y="5" width="7" height="5" rx="1" fill="currentColor" opacity="0.18"/>
+          <rect x="2.5" y="5" width="7" height="5" rx="1" fill="none" stroke="currentColor" stroke-width="1.2"/>
+        </svg>
+        Local
+      </div>
+    </header>
+
+    <!-- Source -->
+    <section class="block">
+      <div class="block-head">
+        <span class="label">Source</span>
+        <span class="label-aux">Detected: <span id="detected">—</span></span>
+      </div>
+      <div class="tiles" id="tiles">
+        <button class="tile" data-platform="x" type="button">
+          <span class="tile-glyph glyph-x" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M18.244 2H21l-6.54 7.47L22 22h-6.77l-4.85-6.11L4.8 22H2l7.03-8.02L2 2h6.93l4.36 5.58L18.244 2Zm-2.38 18.48h1.87L7.2 3.37H5.2l10.66 17.1Z"/></svg>
+          </span>
+          <span class="tile-label">X</span>
+          <span class="tile-dot" aria-hidden="true"></span>
+        </button>
+        <button class="tile" data-platform="rednote" type="button">
+          <span class="tile-glyph glyph-rednote" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="20" height="20"><rect x="3" y="3" width="18" height="18" rx="5" fill="currentColor"/><circle cx="12" cy="12" r="3" fill="#fff"/></svg>
+          </span>
+          <span class="tile-label">RedNote</span>
+          <span class="tile-dot" aria-hidden="true"></span>
+        </button>
+        <button class="tile" data-platform="youtube" type="button">
+          <span class="tile-glyph glyph-youtube" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="20" height="20"><rect x="2" y="6" width="20" height="12" rx="3" fill="currentColor"/><path d="M10 9.5v5l4.5-2.5L10 9.5Z" fill="#fff"/></svg>
+          </span>
+          <span class="tile-label">YouTube</span>
+          <span class="tile-dot" aria-hidden="true"></span>
+        </button>
+        <button class="tile" data-platform="all" type="button">
+          <span class="tile-glyph glyph-all" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+              <path d="M5 7h14M5 12h14M5 17h14"/>
+            </svg>
+          </span>
+          <span class="tile-label">All</span>
+          <span class="tile-dot" aria-hidden="true"></span>
+        </button>
+      </div>
+      <p class="helper">Reads your logged-in session in this tab. No credentials stored.</p>
+    </section>
+
+    <!-- Count -->
+    <section class="block">
+      <div class="block-head">
+        <span class="label">Count</span>
+        <span class="label-aux" id="countAux">Most recent 100</span>
+      </div>
+      <div class="chips" id="chips">
+        <button class="chip" data-count="20" type="button">20</button>
+        <button class="chip" data-count="60" type="button">60</button>
+        <button class="chip selected" data-count="100" type="button">100</button>
+        <button class="chip" data-count="200" type="button">200</button>
+        <button class="chip" data-count="500" type="button">500</button>
+        <button class="chip" data-count="1000" type="button">1,000</button>
+      </div>
+      <div class="chip-row-other">
+        <button class="chip chip-other" id="otherChip" type="button">Other</button>
+        <input class="other-input" id="otherInput" type="number" min="1" max="5000" inputmode="numeric" placeholder="count" hidden>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <button class="cta" id="fetch" type="button">
+      <span class="cta-label">Fetch &amp; download JSON</span>
+      <span class="cta-spinner" aria-hidden="true"></span>
+    </button>
+    <p class="trust">
+      <svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true">
+        <path d="M3 5V3.5a3 3 0 0 1 6 0V5" fill="none" stroke="currentColor" stroke-width="1.2"/>
+        <rect x="2.5" y="5" width="7" height="5" rx="1" fill="none" stroke="currentColor" stroke-width="1.2"/>
+      </svg>
+      Saves to your Downloads folder. Never uploaded.
+    </p>
+
+    <!-- Dynamic status card -->
+    <div id="statusCard" class="status-card" hidden>
+      <div class="status-row">
+        <span class="status-icon" id="statusIcon" aria-hidden="true"></span>
+        <span class="status-text" id="statusText"></span>
+        <span class="status-meta" id="statusMeta"></span>
+      </div>
+      <div class="progress" id="progressWrap" hidden>
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+      <div class="status-sub" id="statusSub"></div>
+      <button class="run-again" id="runAgain" type="button" hidden>Run again</button>
+    </div>
+
+    <!-- Footer -->
+    <footer class="foot">
+      <a href="#" data-link="how">How it works ↗</a>
+      <span class="foot-dot">·</span>
+      <a href="#" data-link="source">View source ↗</a>
+      <span class="foot-dot">·</span>
+      <a href="#" data-link="changelog">Changelog ↗</a>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

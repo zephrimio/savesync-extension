@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "SaveSync Bookmarks",
+  "version": "0.1.0",
+  "description": "One-click export of your X / Twitter, RedNote (小红书), and YouTube Watch Later bookmarks as JSON.",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "SaveSync Bookmarks",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": ["scripting", "downloads", "tabs", "storage"],
+  "host_permissions": [
+    "https://x.com/*",
+    "https://twitter.com/*",
+    "https://www.xiaohongshu.com/*",
+    "https://xiaohongshu.com/*",
+    "https://www.rednote.com/*",
+    "https://rednote.com/*",
+    "https://www.youtube.com/*"
+  ]
+}
