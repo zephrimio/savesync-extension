@@ -10,10 +10,21 @@
  * DOM (YouTube) — same surfaces bb-browser uses today.
  */
 
+const KNOWN_PLATFORMS = new Set(['x', 'rednote', 'youtube', 'all']);
+const MAX_COUNT = 5000;
+
 chrome.runtime.onMessage.addListener((msg) => {
-  if (msg.type === 'fetch') {
-    handleFetch(msg.platform, msg.count);
+  if (msg?.type !== 'fetch') return;
+  if (!KNOWN_PLATFORMS.has(msg.platform)) {
+    done(`Error: Unknown platform "${msg.platform}"`, true);
+    return;
   }
+  const count = Number(msg.count);
+  if (!Number.isFinite(count) || count <= 0 || count > MAX_COUNT) {
+    done(`Error: count must be between 1 and ${MAX_COUNT}`, true);
+    return;
+  }
+  handleFetch(msg.platform, Math.floor(count));
 });
 
 async function handleFetch(platform, count) {
@@ -151,9 +162,10 @@ async function fetchXPageInPage(perPage, cursor) {
     .split(';').map(c => c.trim())
     .find(c => c.startsWith('ct0='))?.split('=')[1];
   if (!ct0) return { error: 'No ct0 cookie — make sure you are signed in to x.com.' };
-  const bearer = decodeURIComponent(
-    'AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA'
-  );
+  // X.com's public web-client bearer — ships in every x.com page bundle. Not a
+  // secret of ours. Used with the user's session cookies (credentials: 'include'
+  // + X-Csrf-Token) to call the same GraphQL endpoint the site uses itself.
+  const bearer = 'AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs=1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA';
   const headers = {
     'Authorization': 'Bearer ' + bearer,
     'X-Csrf-Token': ct0,

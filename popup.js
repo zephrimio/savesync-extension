@@ -1,3 +1,6 @@
+const hdrVersionEl = document.getElementById('hdrVersion');
+if (hdrVersionEl) hdrVersionEl.textContent = 'v' + chrome.runtime.getManifest().version;
+
 const tilesEl      = document.getElementById('tiles');
 const chipsEl      = document.getElementById('chips');
 const otherChip    = document.getElementById('otherChip');
@@ -223,9 +226,9 @@ document.querySelector('.foot').addEventListener('click', (e) => {
   // These are placeholders for now — wire to real URLs/modals later.
   const target = a.dataset.link;
   const urls = {
-    how:       'https://github.com/andreykong/savesync#readme',
-    source:    'https://github.com/andreykong/savesync/tree/main/extension',
-    changelog: 'https://github.com/andreykong/savesync/blob/main/CHANGELOG.md',
+    how:       'https://github.com/zephrimio/savesync-extension#readme',
+    source:    'https://github.com/zephrimio/savesync-extension',
+    changelog: 'https://github.com/zephrimio/savesync-extension/releases',
   };
   if (urls[target]) chrome.tabs.create({ url: urls[target] });
 });

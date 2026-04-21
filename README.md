@@ -52,7 +52,7 @@ When "All three" is selected, the top-level object has one key per platform.
 
 | Permission | Why it's needed |
 |---|---|
-| `scripting` | Injects the bookmark-reading script into the five supported sites only. |
+| `scripting` | Injects the bookmark-reading script into the supported sites listed below. |
 | `downloads` | Saves the resulting JSON to your local Downloads folder. |
 | `tabs` | Reads the URL of the active tab to pick the right scraper and find a logged-in tab on the target site. |
 | `storage` | Remembers your last-used UI preferences. Stays on-device. |
