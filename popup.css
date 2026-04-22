@@ -273,6 +273,10 @@ body {
   background: rgba(244, 33, 46, 0.06);
   border-color: rgba(244, 33, 46, 0.35);
 }
+.status-card.is-warning {
+  background: rgba(250, 176, 5, 0.07);
+  border-color: rgba(250, 176, 5, 0.35);
+}
 
 .status-row {
   display: flex;
@@ -290,6 +294,7 @@ body {
 }
 .status-card.is-success .status-icon { color: #4ADE80; }
 .status-card.is-error   .status-icon { color: #F4212E; }
+.status-card.is-warning .status-icon { color: #FAB005; }
 .status-icon.spinner {
   width: 14px;
   height: 14px;
@@ -310,6 +315,36 @@ body {
 }
 .status-card.is-success .status-text { color: #4ADE80; }
 .status-card.is-error   .status-text { color: #F4212E; }
+.status-card.is-warning .status-text { color: #FAB005; }
+.status-card.is-warning .status-text,
+.status-card.is-warning .status-sub {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
+.status-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.status-action-btn {
+  background: #1D9BF0;
+  color: #fff;
+  border: 0;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+.status-action-btn.secondary {
+  background: transparent;
+  color: #DADEE3;
+  border: 1px solid #2A2D33;
+}
+.status-action-btn:hover { filter: brightness(1.1); }
 .status-meta {
   font-size: 11px;
   color: #7A7F85;

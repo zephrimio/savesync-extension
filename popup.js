@@ -115,7 +115,16 @@ function detectPlatform(url) {
 // Fetch CTA
 // -------------------------------------------------------------------------
 
-fetchBtn.addEventListener('click', () => {
+fetchBtn.addEventListener('click', async () => {
+  // Pre-flight: per-platform check that (a) a tab on the platform is open
+  // and (b) the user is logged in. Without this, the background script
+  // throws mid-fetch and the user sees a vague error.
+  const check = await preflightCheck(selectedPlatform);
+  if (!check.ok) {
+    showWarning(check.warning);
+    return;
+  }
+
   setRunning(true);
   showStatus({ kind: 'running', text: `Starting ${PLATFORM_NAMES[selectedPlatform]}…` });
   chrome.runtime.sendMessage({
@@ -124,6 +133,181 @@ fetchBtn.addEventListener('click', () => {
     count: selectedCount,
   });
 });
+
+async function preflightCheck(platform) {
+  if (platform === 'all') {
+    for (const p of ['x', 'rednote', 'youtube']) {
+      const r = await preflightCheck(p);
+      if (!r.ok) return r;
+    }
+    return { ok: true };
+  }
+  if (platform === 'x')       return await preflightX();
+  if (platform === 'rednote') return await preflightRedNote();
+  if (platform === 'youtube') return await preflightYouTube();
+  return { ok: true };
+}
+
+async function preflightX() {
+  const tabs = await chrome.tabs.query({
+    url: ['https://x.com/*', 'https://www.x.com/*', 'https://twitter.com/*', 'https://www.twitter.com/*'],
+  });
+  if (tabs.length === 0) {
+    return {
+      ok: false,
+      warning: {
+        title: 'Open X first',
+        body: 'The extension needs an x.com tab (signed in) to read your bookmarks. Open x.com, sign in if you aren\u2019t already, then click Fetch again.',
+        actions: [['Open X', 'https://x.com/home']],
+      },
+    };
+  }
+  // ct0 is the CSRF cookie x.com sets only for logged-in sessions. It's
+  // readable from page context (not HttpOnly).
+  const loggedIn = await evalInTab(tabs[0].id, () => /(?:^|;\s*)ct0=/.test(document.cookie));
+  if (loggedIn === false) {
+    return {
+      ok: false,
+      warning: {
+        title: 'Sign in to X',
+        body: "You're on x.com but not signed in. Log in, then come back and click Fetch.",
+        actions: [['Sign in to X', 'https://x.com/i/flow/login']],
+      },
+    };
+  }
+  return { ok: true };
+}
+
+async function preflightRedNote() {
+  const tabs = await chrome.tabs.query({
+    url: [
+      'https://www.xiaohongshu.com/*',
+      'https://xiaohongshu.com/*',
+      'https://www.rednote.com/*',
+      'https://rednote.com/*',
+    ],
+  });
+  if (tabs.length === 0) {
+    return {
+      ok: false,
+      warning: {
+        title: 'Open RedNote first',
+        body: 'The extension needs a rednote.com or xiaohongshu.com tab. Open one, sign in, then navigate to your profile page.',
+        actions: [
+          ['Open RedNote', 'https://www.rednote.com'],
+          ['Open XiaoHongShu', 'https://www.xiaohongshu.com'],
+        ],
+      },
+    };
+  }
+  // The profile URL contains the user_id — landing on it requires being
+  // signed in, so this check covers "tab open + profile + logged in".
+  const hasProfile = tabs.some((t) => /\/user\/profile\/[a-f0-9]+/.test(t.url || ''));
+  if (!hasProfile) {
+    return {
+      ok: false,
+      warning: {
+        title: 'Open your RedNote profile first',
+        body: "You have a RedNote tab open, but the extension needs your profile page (URL contains /user/profile/<id>). Tap your avatar to go there, then click Fetch again. If you're not signed in yet, sign in first.",
+        actions: [
+          ['Open RedNote', 'https://www.rednote.com'],
+          ['Open XiaoHongShu', 'https://www.xiaohongshu.com'],
+        ],
+      },
+    };
+  }
+  return { ok: true };
+}
+
+async function preflightYouTube() {
+  const tabs = await chrome.tabs.query({
+    url: ['https://www.youtube.com/*', 'https://youtube.com/*', 'https://m.youtube.com/*'],
+  });
+  if (tabs.length === 0) {
+    return {
+      ok: false,
+      warning: {
+        title: 'Open YouTube first',
+        body: 'The extension needs a youtube.com tab (signed in) to read your Watch Later. Open YouTube, sign in, then click Fetch again.',
+        actions: [['Open YouTube', 'https://www.youtube.com/playlist?list=WL']],
+      },
+    };
+  }
+  // YouTube sets window.yt.config_.LOGGED_IN on every page. Undefined means
+  // the page is still booting \u2014 optimistically allow and let the scrape
+  // error surface; explicit false means a signed-out session.
+  const loggedIn = await evalInTab(tabs[0].id, () => {
+    try {
+      const v = window.yt && window.yt.config_ && window.yt.config_.LOGGED_IN;
+      if (typeof v === 'boolean') return v;
+    } catch {}
+    return null; // unknown
+  });
+  if (loggedIn === false) {
+    return {
+      ok: false,
+      warning: {
+        title: 'Sign in to YouTube',
+        body: "You're on youtube.com but not signed in. Watch Later is private, so you need to log in first.",
+        actions: [['Sign in to YouTube', 'https://accounts.google.com/ServiceLogin?service=youtube']],
+      },
+    };
+  }
+  return { ok: true };
+}
+
+async function evalInTab(tabId, func) {
+  try {
+    const [res] = await chrome.scripting.executeScript({
+      target: { tabId },
+      world: 'MAIN',
+      func,
+    });
+    return res?.result;
+  } catch {
+    return undefined;
+  }
+}
+
+function showWarning({ title, body, actions }) {
+  statusCard.hidden = false;
+  statusCard.classList.remove('is-success', 'is-error');
+  statusCard.classList.add('is-warning');
+
+  statusText.textContent = title;
+  statusMeta.textContent = '';
+  statusSub.textContent = body;
+
+  statusIcon.className = 'status-icon';
+  statusIcon.innerHTML =
+    '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">' +
+    '<path d="M8 2 L14.5 13.5 L1.5 13.5 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>' +
+    '<path d="M8 6 V9.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>' +
+    '<circle cx="8" cy="11.5" r="0.9" fill="currentColor"/>' +
+    '</svg>';
+
+  progressWrap.hidden = true;
+  runAgainBtn.hidden = true;
+
+  // Append/rebuild an action row with quick-open links. Reuse the node so
+  // repeated pre-flight warnings don't stack.
+  let actionsEl = document.getElementById('statusActions');
+  if (!actionsEl) {
+    actionsEl = document.createElement('div');
+    actionsEl.id = 'statusActions';
+    actionsEl.className = 'status-actions';
+    statusCard.appendChild(actionsEl);
+  }
+  actionsEl.innerHTML = '';
+  (actions || []).forEach(([label, url], i) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'status-action-btn' + (i === 0 ? '' : ' secondary');
+    btn.textContent = label;
+    btn.addEventListener('click', () => chrome.tabs.create({ url }));
+    actionsEl.appendChild(btn);
+  });
+}
 
 runAgainBtn.addEventListener('click', () => fetchBtn.click());
 
@@ -139,8 +323,11 @@ function setRunning(on) {
 
 function showStatus({ kind, text, meta, sub, current, total }) {
   statusCard.hidden = false;
+  statusCard.classList.remove('is-warning');
   statusCard.classList.toggle('is-success', kind === 'success');
   statusCard.classList.toggle('is-error',   kind === 'error');
+  // Drop the pre-flight action row if it's lingering from a previous warning.
+  document.getElementById('statusActions')?.remove();
 
   statusText.textContent = text || '';
   statusMeta.textContent = meta || '';
