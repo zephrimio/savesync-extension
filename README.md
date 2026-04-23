@@ -4,7 +4,7 @@ One-click export of your **X / Twitter**, **RedNote (小红书)**, and **YouTube
 
 No account. No uploads. No backend middleman.
 
-> The Chrome Web Store listing is at **(coming soon)**. Meanwhile, you can run this as an unpacked extension — see below.
+> **Install from the Chrome Web Store** → [SaveSync Bookmarks](https://chromewebstore.google.com/detail/savesync-bookmarks/oaioifocnbdahnbdkoiicchacnanahha). Or run it as an unpacked extension — see below.
 
 ## How it works
 
