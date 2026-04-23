@@ -31,7 +31,15 @@ Output shape:
 
 When "All three" is selected, the top-level object has one key per platform.
 
-## Install (unpacked, for now)
+## Install
+
+**Recommended — Chrome Web Store:**
+
+1. Open the [**SaveSync Bookmarks**](https://chromewebstore.google.com/detail/savesync-bookmarks/oaioifocnbdahnbdkoiicchacnanahha) listing in Chrome, Edge, or Brave.
+2. Click **Add to Chrome**.
+3. Pin the **SaveSync Bookmarks** action for quick access.
+
+**Alternative — unpacked (for development or pre-release builds):**
 
 1. Clone this repo.
 2. Open `chrome://extensions` in Chrome, Edge, or Brave.
